@@ -18,16 +18,6 @@ import com.supply_chain_management.basic_data_insights_service.service.Dashboard
 public class DashboardController {
     private final DashboardService dashboardService;
 
-    @GetMapping("/")
-    public ResponseEntity<?> getSupplierDashboard() {
-        try {
-            SupplierDashboardResponse dashboard = dashboardService.getSupplierDashboard();
-            return new ResponseEntity<>(dashboard, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>("Failed to fetch supplier dashboard data", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
     @GetMapping("/insights")
     public ResponseEntity<?> getDashboardData() {
         try {
@@ -38,10 +28,10 @@ public class DashboardController {
         }
     }
 
-    @GetMapping("/generate-report/{supplierId}")
-    public ResponseEntity<?> getSupplierPerformance(@PathVariable Long supplierId) {
+    @GetMapping("/generate-report")
+    public ResponseEntity<?> getSupplierPerformance() {
         try {
-            SupplierPerformanceReport report = dashboardService.getSupplierPerformance(supplierId);
+            SupplierPerformanceReport report = dashboardService.getSupplierPerformance();
             return new ResponseEntity<>(report, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Failed to generate supplier performance report", HttpStatus.INTERNAL_SERVER_ERROR);

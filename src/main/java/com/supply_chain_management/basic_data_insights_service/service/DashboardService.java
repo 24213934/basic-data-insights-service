@@ -16,7 +16,7 @@ public class DashboardService {
 
     private final String inventoryServiceUrl = "http://localhost:8081/inventory/item";
     private final String orderServiceUrl = "http://localhost:8082/orders/list";
-    private final String supplierServiceUrl = "http://localhost:8083/supplier/details/";
+    private final String supplierServiceUrl = "http://localhost:8083/supplier/details";
 
     public DashboardResponse getDashboardData() {
         DashboardResponse dashboard = new DashboardResponse();
@@ -43,9 +43,9 @@ public class DashboardService {
         return dashboard;
     }
 
-    public SupplierPerformanceReport getSupplierPerformance(Long supplierId) {
+    public SupplierPerformanceReport getSupplierPerformance() {
         ResponseEntity<SupplierDetailsResponse> supplierResponse = restTemplate.getForEntity(
-                supplierServiceUrl + supplierId, SupplierDetailsResponse.class
+                supplierServiceUrl, SupplierDetailsResponse.class
         );
 
         SupplierDetailsResponse supplier = supplierResponse.getBody();
@@ -53,21 +53,16 @@ public class DashboardService {
             throw new RuntimeException("Supplier not found");
         }
 
-        System.out.println("ERROR1" + supplier);
-
         ResponseEntity<OrderResponse[]> orderResponse = restTemplate.getForEntity(orderServiceUrl, OrderResponse[].class);
         List<OrderResponse> orders = List.of(orderResponse.getBody());
 
-        System.out.println("ERROR2" + orders);
+        int successfulDeliveries = 0;
+        int failedDeliveries = 0;
+        int totalOrders = orders.size();
 
-
-        int successfulDeliveries = 0, failedDeliveries = 0, totalOrders = 0;
         for (OrderResponse order : orders) {
-            if (order.getSupplierId() != null && order.getSupplierId().equals(supplierId)) {
-                totalOrders++;
-                if (order.getStatus() == OrderStatus.DELIVERED) successfulDeliveries++;
-                else if (order.getStatus() == OrderStatus.CANCELLED) failedDeliveries++;
-            }
+            if (order.getStatus() == OrderStatus.DELIVERED) successfulDeliveries++;
+            else if (order.getStatus() == OrderStatus.CANCELLED) failedDeliveries++;
         }
 
         return new SupplierPerformanceReport(
@@ -76,17 +71,6 @@ public class DashboardService {
                 successfulDeliveries,
                 failedDeliveries
         );
-    }
-
-    public SupplierDashboardResponse getSupplierDashboard() {
-        ResponseEntity<OrderResponse[]> orderResponse = restTemplate.getForEntity(orderServiceUrl, OrderResponse[].class);
-        List<OrderResponse> orders = List.of(orderResponse.getBody());
-
-        int totalOrders = orders.size();
-        int successfulDeliveries = (int) orders.stream().filter(o -> o.getStatus() == OrderStatus.DELIVERED).count();
-        int failedDeliveries = (int) orders.stream().filter(o -> o.getStatus() == OrderStatus.CANCELLED).count();
-
-        return new SupplierDashboardResponse(totalOrders, successfulDeliveries, failedDeliveries);
     }
 }
 
